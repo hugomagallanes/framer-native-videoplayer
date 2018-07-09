@@ -8,12 +8,6 @@ playerDimensions =
   width: 375
   height: 212
 
-# playerInfo = [
-#   ["playerChannel" , 12],
-#   ["playerTitle" , 14],
-#   ["timeCurrent", 14],
-#   ["timeDuration", 14]
-# ]
 
 playerInfo =
 
