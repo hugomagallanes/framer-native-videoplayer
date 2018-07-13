@@ -203,11 +203,11 @@ class exports.DMnativeIOSplayer extends VideoLayer
 
       @playerTitle = new TextLayer
         name: "playerTitle"
-        text: "Lady Gaga surprises fans"
+        text: @options.VODtitle || "Title"
 
       @playerChannel = new TextLayer
         name: "playerChannel"
-        text: "Channel name"
+        text: @options.VODchannel || "Channel name"
 
       @timeline = new Layer
         name: "timeline"
