@@ -7,3 +7,6 @@
 # Changeable elements:
 Video header: "VODtitle"
 Channel name: "VODchannel"
+
+VODbackground = video Color
+VODvideo = video content

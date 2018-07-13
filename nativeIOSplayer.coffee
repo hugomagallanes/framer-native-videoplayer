@@ -5,8 +5,11 @@
 
 
 playerDimensions =
-  width: 375
-  height: 212
+  normal:
+    width: 375
+    height: 212
+  minimized:
+    height: 106
 
 
 playerInfo =
@@ -35,7 +38,11 @@ playerInfo =
       lineHeight: 1
       color: "white"
 
-
+# Color palette
+black30 = "rgba(0,0,0,.3)"
+black40 = "rgba(0,0,0,.4)"
+black60 = "rgba(0,0,0,.6)"
+black100 = "rgba(0,0,0,1)"
 
 
 ###  ===================================================================
@@ -144,22 +151,33 @@ SVG_fullscreenIcon = """
 ==================================================================== ###
 
 
-class exports.DMnativeIOSplayer extends VideoLayer
+class exports.DMnativeIOSplayer extends Layer
     constructor: (@options={}) ->
-
 
       #--> Unchangeable defaults
       # ↳ They still can be changed using a notation system
-      @options.width = playerDimensions.width
-      @options.height = playerDimensions.height
+      @options.width = playerDimensions.normal.width
+      @options.height = playerDimensions.normal.height
+      @options.clip = true
 
 
       #--> Changeable defaults
       _.defaults @options,
-        backgroundColor: "#181818"
+        backgroundColor: null
 
 
       #--> Internal layer structure
+      ###
+      ↳ CONTENTS
+      	a. Video
+      	b. Overlay
+      ###
+
+      @video = new VideoLayer
+        name: "video"
+        backgroundColor: null
+        video: @options.VODvideo
+
       @overlay = new Layer
         name: "overlay"
         backgroundColor: null
@@ -175,6 +193,11 @@ class exports.DMnativeIOSplayer extends VideoLayer
       @playButton = new Layer
         name: "playButton"
         backgroundColor: "rgba(255,255,255,.4)"
+      @playButton.states =
+          expanded:
+            size: 48
+            # y: Align.center
+
 
       @playButtonIcon = new SVGLayer
         name: "playButtonIcon"
@@ -211,7 +234,7 @@ class exports.DMnativeIOSplayer extends VideoLayer
 
       @timeline = new Layer
         name: "timeline"
-        backgroundColor: "rgba(255,255,255,.25)"
+        # backgroundColor: "rgba(255,255,255,.25)"
 
       @progressBar = new Layer
         name: "progressBar"
@@ -226,10 +249,15 @@ class exports.DMnativeIOSplayer extends VideoLayer
         text: "0:00"
 
 
-      # 🚩 INITIATES COMPONENT
+      # || 🚩 INITIATES COMPONENT ||
       super @options
 
-      # 🎨 STYLE LAYER
+
+      # || 🎨 STYLE LAYERS ||
+
+      @video.parent = @
+      @video.size = @size
+      @video.y = .5
 
       # Overlay
       @overlay.parent = @
@@ -243,35 +271,28 @@ class exports.DMnativeIOSplayer extends VideoLayer
           opacity: 1
           backgroundColor: "rgba(0,0,0,.6)"
 
-
-      @overlay.sendToBack()
-
-      # Controls
+      #--> Controls
       @controls.parent = @
       @controls.size = @.overlay.size
       @controls.opacity = 0
       @controls.states.reveal =
         opacity: 1
 
-      # VODinfo
+      #--> VODinfo
       @VODinfo.parent = @
       @VODinfo.size = @.overlay.size
       @VODinfo.opacity = 0
       @VODinfo.states.reveal =
         opacity: 1
 
-
-      # @overlay.sendToBack()
-
-
-      # Play/Pause button
+      #--> Play/Pause button
       @playButton.parent = @.controls
       @playButton.size = 48
       @playButton.borderRadius = 100
       @playButton.x = 28
       @playButton.y = Align.center
 
-      # Play/Pause button icon
+      #--> Play/Pause button icon
       @playButtonIcon.parent = @.playButton
       @playButtonIcon.size = 16
       @playButtonIcon.fill = "white"
@@ -279,7 +300,7 @@ class exports.DMnativeIOSplayer extends VideoLayer
 
       #--> Timeline
       @timeline.parent = @.controls
-      @timeline.width = @width
+      @timeline.width = 375
       @timeline.height = 5
       @timeline.y = Align.bottom
 
@@ -291,10 +312,10 @@ class exports.DMnativeIOSplayer extends VideoLayer
       #--> Settings icon
       @settingsIcon.parent = @.controls
       @settingsIcon.size = 20
-      @settingsIcon.fill = "white"
       @settingsIcon.x = Align.right(-15)
       @settingsIcon.y = 20
-
+      @settingsIcon.fill = "white"
+      @settingsIcon.opacity = 1
 
       iconsArr = [@fulllscreenIcon, @chromecastIcon, @airplayIcon]
 
@@ -336,6 +357,11 @@ class exports.DMnativeIOSplayer extends VideoLayer
       @playerTimeDuration.x = @.playerTimeCurrent.maxX + 5
       @playerTimeDuration.y = Align.bottom(-20)
 
+
+
+
+
+
       # EVENTS
       @.onTap @RevealOverlay
       @.playButton.onTap @TogglePlayPause
@@ -345,7 +371,13 @@ class exports.DMnativeIOSplayer extends VideoLayer
       @TimeUpdate()
 
 
-    # 🔧 SUPPORTING FUNCTIONS
+    # || 🔧 GETTERS AND SETTERS ||
+
+
+
+
+
+    # || 🔧 SUPPORTING FUNCTIONS ||
     ConvertIntoSecondsMinutes: (value) =>
 
       # Transforms currentTime into minutes and seconds
@@ -365,6 +397,7 @@ class exports.DMnativeIOSplayer extends VideoLayer
       layer.fontWeight = pathToObject.fontWeight
       layer.lineHeight = pathToObject.lineHeight
       layer.color = pathToObject.color
+      layer.opacity = 1
 
 
     # 🔧 DEFINING EVENTS
@@ -372,22 +405,22 @@ class exports.DMnativeIOSplayer extends VideoLayer
     #--> Reveal overlay
     RevealOverlay: =>
 
-      # If video is playing
-      if @.player.paused is false
+      # If video is playing display controls
+      if @.video.player.paused is false
         @.controls.animate ("reveal")
         @.overlay.animate ("reveal_light")
 
-        @HideOverlay
 
-      # If video is paused
+      # If video is paused display controls and VODinformation
       else
         @.controls.animate ("reveal")
         @.VODinfo.animate ("reveal")
         @.overlay.animate ("reveal_dark")
 
-        @HideOverlay
 
+      # Hide controls and VODinformation after 5s
       Utils.delay 5, =>
+        print "hide"
         @.overlay.animate ("default")
         @.controls.animate ("default")
         @.VODinfo.animate ("default")
@@ -397,9 +430,9 @@ class exports.DMnativeIOSplayer extends VideoLayer
     TogglePlayPause: =>
 
         # If video is playing
-        if @.player.paused is true
+        if @.video.player.paused is true
           # Plays video
-          @.player.play()
+          @.video.player.play()
 
           # Changes player icon to Play
           @.playButtonIcon.svg = SVG_pauseButton
@@ -408,7 +441,7 @@ class exports.DMnativeIOSplayer extends VideoLayer
           @.VODinfo.animate ("default")
         else
           # Pauses video
-          @.player.pause()
+          @.video.player.pause()
 
           # Changes player icon to Play
           @.playButtonIcon.svg = SVG_playButton
@@ -416,14 +449,14 @@ class exports.DMnativeIOSplayer extends VideoLayer
 
     #--> Loads progress bar and updates currentTime
     TimeUpdate: =>
-      Events.wrap(@.player).on "timeupdate", =>
+      Events.wrap(@.video.player).on "timeupdate", =>
 
         # Stores video current time
-        currrentTime = Math.round(@.player.currentTime)
+        currrentTime = Math.round(@.video.player.currentTime)
 
         # Update timeline
         # ↳ Stores current time of the video divided by the width of timeline
-        newPos = (@.timeline.width / @.player.duration) * currrentTime
+        newPos = (@.timeline.width / @.video.player.duration) * currrentTime
 
         # Changes timeline width accordingly
         @.progressBar.width = newPos
@@ -431,11 +464,75 @@ class exports.DMnativeIOSplayer extends VideoLayer
         # Update currentTime
         @.playerTimeCurrent.text = @ConvertIntoSecondsMinutes(currrentTime)
 
+
+    #--> Fetches video's duration
     FetchVideoDuration: =>
-      Events.wrap(@.player).on "canplay", =>
+      Events.wrap(@.video.player).on "canplay", =>
 
         # Fetches video total duration (in seconds)
-        duration = Math.round(@.player.duration)
+        duration = Math.round(@.video.player.duration)
 
         # Updates TextLayer
         @.playerTimeDuration.text = "/" + "  " + @ConvertIntoSecondsMinutes(duration)
+
+
+    #--> Switches player to a minimized format
+    MinimizePlayer: =>
+
+      @.animate
+        height: playerDimensions.minimized.height
+
+      @.timeline.animate
+        height: 3
+        y: 103
+
+      @.playButton.animate
+        size: 30
+        x: 16
+        y: 38
+
+      @.playButtonIcon.animate
+        size: 12
+        fill: "red"
+        x: 9
+        y: 9
+
+      @.playerTitle.animate
+        opacity: 0
+
+      @.playerChannel.animate
+        opacity: 0
+
+      @.settingsIcon.animate
+        opacity: 0
+
+    #--> Reverts player back to a regular format
+    ExpandPlayer: =>
+      print "Running ExpandPlayer function"
+
+      @.animate
+        height: playerDimensions.normal.height
+
+      @.timeline.animate
+        height: 5
+        y: Align.bottom
+
+      @.playButton.animate
+        size: 48
+        x: 28
+        y: Align.center
+
+      @.playButtonIcon.animate
+        size: 16
+        fill: "white"
+        x: 16
+        y: 16
+
+      @.playerTitle.animate
+        opacity: 1
+
+      @.playerChannel.animate
+        opacity: 1
+
+      @.settingsIcon.animate
+        opacity: 1
