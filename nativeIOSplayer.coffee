@@ -420,7 +420,7 @@ class exports.DMnativeIOSplayer extends Layer
 
       # Hide controls and VODinformation after 5s
       Utils.delay 5, =>
-        print "hide"
+        # print "Hide controls"
         @.overlay.animate ("default")
         @.controls.animate ("default")
         @.VODinfo.animate ("default")
@@ -478,6 +478,7 @@ class exports.DMnativeIOSplayer extends Layer
 
     #--> Switches player to a minimized format
     MinimizePlayer: =>
+      # print "Minimizing player"
 
       @.animate
         height: playerDimensions.minimized.height
@@ -493,7 +494,6 @@ class exports.DMnativeIOSplayer extends Layer
 
       @.playButtonIcon.animate
         size: 12
-        fill: "red"
         x: 9
         y: 9
 
@@ -508,7 +508,7 @@ class exports.DMnativeIOSplayer extends Layer
 
     #--> Reverts player back to a regular format
     ExpandPlayer: =>
-      print "Running ExpandPlayer function"
+      # print "Expanding player"
 
       @.animate
         height: playerDimensions.normal.height
