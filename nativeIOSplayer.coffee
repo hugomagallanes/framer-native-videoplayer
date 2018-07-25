@@ -478,61 +478,44 @@ class exports.DMnativeIOSplayer extends Layer
 
     #--> Switches player to a minimized format
     MinimizePlayer: =>
-      # print "Minimizing player"
 
-      @.animate
-        height: playerDimensions.minimized.height
+      @.height = playerDimensions.minimized.height
 
-      @.timeline.animate
-        height: 3
-        y: 103
+      @.timeline.height = 3
+      @.timeline.y = 103
 
-      @.playButton.animate
-        size: 30
-        x: 16
-        y: 38
+      @.playButton.size = 30
+      @.playButton.x = 16
+      @.playButton.y = 38
 
-      @.playButtonIcon.animate
-        size: 12
-        x: 9
-        y: 9
+      @.playButtonIcon.size = 12
+      @.playButtonIcon.x = 9
+      @.playButtonIcon.y = 9
 
-      @.playerTitle.animate
-        opacity: 0
+      @.playerTitle.opacity = 0
 
-      @.playerChannel.animate
-        opacity: 0
+      @.playerChannel.opacity = 0
 
-      @.settingsIcon.animate
-        opacity: 0
+      @.settingsIcon.opacity = 0
 
     #--> Reverts player back to a regular format
     ExpandPlayer: =>
-      # print "Expanding player"
 
-      @.animate
-        height: playerDimensions.normal.height
+      @.height = playerDimensions.normal.height
 
-      @.timeline.animate
-        height: 5
-        y: Align.bottom
+      @.timeline.height = 5
+      @.timeline.y = Align.bottom
 
-      @.playButton.animate
-        size: 48
-        x: 28
-        y: Align.center
+      @.playButton.size = 48
+      @.playButton.x = 28
+      @.playButton.y = Align.center
 
-      @.playButtonIcon.animate
-        size: 16
-        fill: "white"
-        x: 16
-        y: 16
+      @.playButtonIcon.size = 16
+      @.playButtonIcon.x = 16
+      @.playButtonIcon.y = 16
 
-      @.playerTitle.animate
-        opacity: 1
+      @.playerTitle.opacity = 1
 
-      @.playerChannel.animate
-        opacity: 1
+      @.playerChannel.opacity = 1
 
-      @.settingsIcon.animate
-        opacity: 1
+      @.settingsIcon.opacity = 1
