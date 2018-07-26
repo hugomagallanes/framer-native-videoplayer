@@ -26,20 +26,8 @@ Recreated Dailymotion native iOS player with all functional controls in Framer.
 
 ### Customization
 
-| key            | type              | description                           |
-| ---------------|:-----------------:|---------------------------------------|
-| `VODvideo`         | *External or local URL*          | Loads video content
-
-
-
-
-
-
-
-
-# Changeable elements:
-Video header: "VODtitle"
-Channel name: "VODchannel"
-
-VODbackground = video Color
-VODvideo = video content
+| key          | type                    | description                           |
+| -------------|:-----------------------:|---------------------------------------|
+| `VODvideo`   | *External or local URL* | Loads video file
+| `VODheader`  | *String*                | Define video's header
+| `VODchannel` | *String*                | Define video's channel
