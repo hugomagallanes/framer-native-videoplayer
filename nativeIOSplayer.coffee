@@ -208,6 +208,17 @@ class exports.DMnativeIOSplayer extends Layer
         name: "VODinfo"
         backgroundColor: null
 
+      @seekbar = new SliderComponent
+        name: "seekbar"
+
+      @seekbarOverlayInvisible = new Layer
+        name: "seekbarOverlayInvisible"
+        backgroundColor: null
+
+      @seekbarOverlayWhite = new Layer
+        name: "seekbarOverlayWhite"
+        backgroundColor: white30
+
       @playButton = new Layer
         name: "playButton"
         backgroundColor: black40
@@ -245,13 +256,6 @@ class exports.DMnativeIOSplayer extends Layer
         name: "playerChannel"
         text: @options.VODchannel || "Channel name"
 
-      @seekbar = new SliderComponent
-        name: "seekbar"
-
-      @seekbarOverlay = new Layer
-        name: "seekbarOverlay"
-        backgroundColor: white30
-
       @playerTimeCurrent = new TextLayer
         name: "timeCurrent"
         text: "0:00"
@@ -278,13 +282,48 @@ class exports.DMnativeIOSplayer extends Layer
 
       #--> Controls
       @controls.parent = @
-      @controls.size = @.overlay.size
       @controls.opacity = 0
+      @controls.size = @.overlay.size
+      @controls.visible = false
 
       #--> VODinfo
       @VODinfo.parent = @
       @VODinfo.size = @.overlay.size
       @VODinfo.opacity = 0
+
+      #--> Seekbar: Timeline + Progress Bar
+      @seekbar.parent = @.controls
+      @seekbar.backgroundColor = white10
+      @seekbar.borderRadius = 0
+      @seekbar.height = 5
+      @seekbar.max = 1
+      @seekbar.min = 0
+      @seekbar.width = @width
+      @seekbar.y = Align.bottom
+
+      # ↳ Seekbar.fill
+      @seekbar.fill.backgroundColor = lightBlue
+
+      # ↳ Seekbar.knob
+      @seekbar.knob.size = 0
+
+      # ↳ Seekbar.sliderOverlay
+      @seekbar.sliderOverlay.borderRadius = 0
+
+      #--> Seekbar Overlay
+      @seekbarOverlayInvisible.parent = @.controls
+      @seekbarOverlayInvisible.height = @height/2
+      @seekbarOverlayInvisible.width = @width
+      @seekbarOverlayInvisible.y = Align.bottom
+
+      #--> Seekbar Overlay White
+      @seekbarOverlayWhite.parent = @.seekbarOverlayInvisible
+      @seekbarOverlayWhite.height = @height
+      @seekbarOverlayWhite.width = 0
+      @seekbarOverlayWhite.y = Align.bottom
+      @seekbarOverlayWhite.backgroundColor = white30
+      @seekbarOverlayWhite.opacity = 0
+
 
       #--> Play/Pause button
       @playButton.parent = @.controls
@@ -298,31 +337,6 @@ class exports.DMnativeIOSplayer extends Layer
       @playButtonIcon.size = 16
       @playButtonIcon.fill = "white"
       @playButtonIcon.point = Align.center
-
-      #--> Seekbar: Timeline + Progress Bar
-      @seekbar.parent = @.controls
-      @seekbar.backgroundColor = white10
-      @seekbar.borderRadius = 0
-      @seekbar.height = 5
-      @seekbar.width = @width
-      @seekbar.y = Align.bottom
-
-      # ↳ Seekbar.fill
-      @seekbar.fill.backgroundColor = lightBlue
-
-      # ↳ Seekbar.knob
-      @seekbar.knob.size = 0
-
-      # ↳ Seekbar.sliderOverlay
-      @seekbar.sliderOverlay.backgroundColor = null
-      @seekbar.sliderOverlay.borderRadius = 0
-      @seekbar.sliderOverlay.height = @height
-      @seekbar.sliderOverlay.y = -@height
-
-      #--> Seekbar Overlay
-      @seekbarOverlay.parent = @.controls
-      @seekbarOverlay.height = @height
-      @seekbarOverlay.width = 0
 
 
       #--> Settings icon
@@ -438,12 +452,14 @@ class exports.DMnativeIOSplayer extends Layer
 
       # If video is playing display controls
       if @.video.player.paused is false
+        @.controls.visible = true
         @.controls.animate ("reveal")
         @.overlay.animate ("reveal_light")
 
 
       # If video is paused display controls and VODinformation
       else
+        @.controls.visible = true
         @.controls.animate ("reveal")
         @.VODinfo.animate ("reveal")
         @.overlay.animate ("reveal_dark")
@@ -453,8 +469,10 @@ class exports.DMnativeIOSplayer extends Layer
       Utils.delay 5, =>
         # print "Hide controls"
         @.overlay.animate ("default")
+        @.controls.visible = false
         @.controls.animate ("default")
         @.VODinfo.animate ("default")
+
 
 
     #--> Toggles play/pause button
@@ -496,12 +514,11 @@ class exports.DMnativeIOSplayer extends Layer
         # Stores video's current time
         currrentTime = Math.round(@.video.player.currentTime)
 
-        # Calculates width based on video's current timeo
-        # ↳ Stores current time of the video divided by the width of seekbar
-        newWidth = (@.seekbar.width / @.video.player.duration) * currrentTime
+        # Modulates video's currentTime into a [0, 1] range
+        newWidth = Utils.round(Utils.modulate(currrentTime,[0, videoDuration],[0, 1]), 2)
 
-        # Updates seekbar.fill width - progressBar
-        @.seekbar.fill.width = newWidth
+        # Updates seekbar progress bar
+        @.seekbar.value = newWidth
 
         # Update currentTime text
         @.playerTimeCurrent.text = @ConvertIntoSecondsMinutes(currrentTime)
@@ -510,33 +527,65 @@ class exports.DMnativeIOSplayer extends Layer
     #--> Seekbar actions: Update video's time and control seekbarOverlay
     SeekbarActions: =>
 
-      # ↳ When seekbar dragging starts
-      @.seekbar.knob.on Events.DragStart, =>
-
-        # Pauses video
-        @.video.player.pause()
+        # Disables SliderComponent (seekbar) controls
+        @seekbar.sliderOverlay.off Events.TapStart
 
 
-      @.seekbar.onValueChange =>
+        # ↳ a) When seekbar dragging starts
+        @seekbarOverlayInvisible.on Events.SwipeStart, (event) =>
 
-        # Captures seekbar value - between [0,1]
-        seekbarPos = Utils.round(@.seekbar.value, 2)
+          # Reveals white overlay layer
+          @.seekbarOverlayWhite.opacity = 1
 
-        @.seekbarOverlay.width = Utils.modulate(seekbarPos, [0,1], [0, @width])
+          # Stop video
+          @.video.player.pause()
 
-      # ↳ When seekbar dragging stops
-      @.seekbar.knob.on Events.DragEnd, =>
 
-        seekbarPos = Utils.round(@.seekbar.value, 2)
+        # ↳ b) While dragging
+        @seekbarOverlayInvisible.on Events.Swipe, =>
 
-        # Converts seekbarPos into a value based on the videoDuration in seconds - [0,1] to [0:00, videoDuration]
-        newTime = Utils.modulate(seekbarPos, [0,1],[0,videoDuration])
+            # Captures swipe position
+            swipePos = Math.round(event.previous.x)
 
-        # Updates video currentTime unless the values are the same
-        @.video.player.currentTime = newTime unless newTime == Math.round(@.video.player.currentTime)
+            if swipePos <= 0
+              # If the swipe goes over left edge
+              swipePos = 0
+            else if swipePos >= 375
+              # If the swipe goes over right edge
+              swipePos = 375
 
-        # Plays video
-        @.video.player.play()
+            # Changes overlay's width
+            @.seekbarOverlayWhite.width = swipePos
+
+            # Modulates swipePos into a [0,1] range
+            seekbarKnobPos = Utils.round(Utils.modulate(swipePos, [0,375],[0,1]),3)
+
+            # Updates seekbar's knob position
+            @.seekbar.value = seekbarKnobPos
+
+
+        # ↳ c) When seekbar dragging ends
+        @seekbarOverlayInvisible.on Events.SwipeEnd, (event) =>
+          swipePosEnd = Math.round(event.previous.x)
+
+          if swipePosEnd <= 0
+            # If the swipe goes over left edge
+            swipePosEnd = 0
+          else if swipePosEnd >= 375
+            # If the swipe goes over right edge
+            swipePosEnd = 1
+
+          # Modulates swipePosEnd into the videoDuration (secs)
+          newTime = Utils.round(Utils.modulate(swipePosEnd, [0,375],[0,videoDuration]), 1)
+
+          # Updates video currentTime unless the values are the same
+          @.video.player.currentTime = newTime unless newTime == Math.round(@.video.player.currentTime)
+
+          # Hides white overlay layer
+          @.seekbarOverlayWhite.opacity = 0
+
+          # Plays video
+          @.video.player.play()
 
 
     #--> Switches player to a minimized format
