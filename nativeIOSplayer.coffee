@@ -44,6 +44,8 @@ black40 = "rgba(0,0,0,.4)"
 black60 = "rgba(0,0,0,.6)"
 black100 = "rgba(0,0,0,1)"
 
+lightBlue = "#00D2F3"
+
 
 ###  ===================================================================
      || SVG ICONS ||
@@ -165,12 +167,23 @@ class exports.DMnativeIOSplayer extends Layer
       _.defaults @options,
         backgroundColor: null
 
-
-      #--> Internal layer structure
+      # ||-----------|| LAYERS STRUCTURE ||-----------||
       ###
       ↳ CONTENTS
       	a. Video
       	b. Overlay
+        c. Controls
+           - PlayButton
+           - Timeline
+           - SettingsIcon
+           - FulllscreenIcon
+           - ChromecastIcon
+           - AirplayIcon
+           - TimeCurrent
+           - TimeDuration
+        d. VODinfo
+           - playerChannel
+           - playerTitle
       ###
 
       @video = new VideoLayer
@@ -192,12 +205,7 @@ class exports.DMnativeIOSplayer extends Layer
 
       @playButton = new Layer
         name: "playButton"
-        backgroundColor: "rgba(255,255,255,.4)"
-      @playButton.states =
-          expanded:
-            size: 48
-            # y: Align.center
-
+        backgroundColor: black40
 
       @playButtonIcon = new SVGLayer
         name: "playButtonIcon"
@@ -234,11 +242,10 @@ class exports.DMnativeIOSplayer extends Layer
 
       @timeline = new Layer
         name: "timeline"
-        # backgroundColor: "rgba(255,255,255,.25)"
 
       @progressBar = new Layer
         name: "progressBar"
-        backgroundColor: "#00D2F3"
+        backgroundColor: lightBlue
 
       @playerTimeCurrent = new TextLayer
         name: "timeCurrent"
@@ -249,41 +256,30 @@ class exports.DMnativeIOSplayer extends Layer
         text: "0:00"
 
 
-      # || 🚩 INITIATES COMPONENT ||
+      # ||-----------|| 🚩 INITIATES COMPONENT ||-----------||
       super @options
 
 
-      # || 🎨 STYLE LAYERS ||
+      # ||-----------|| LAYERS STYLE ||-----------||
 
       @video.parent = @
       @video.size = @size
       @video.y = .5
 
-      # Overlay
+      #--> Overlay
       @overlay.parent = @
       @overlay.size = @size
       @overlay.opacity = 0
-      @overlay.states =
-        reveal_light:
-          opacity: 1
-          backgroundColor: "rgba(0,0,0,.3)"
-        reveal_dark:
-          opacity: 1
-          backgroundColor: "rgba(0,0,0,.6)"
 
       #--> Controls
       @controls.parent = @
       @controls.size = @.overlay.size
       @controls.opacity = 0
-      @controls.states.reveal =
-        opacity: 1
 
       #--> VODinfo
       @VODinfo.parent = @
       @VODinfo.size = @.overlay.size
       @VODinfo.opacity = 0
-      @VODinfo.states.reveal =
-        opacity: 1
 
       #--> Play/Pause button
       @playButton.parent = @.controls
@@ -331,7 +327,7 @@ class exports.DMnativeIOSplayer extends Layer
       @airplayIcon.x = @chromecastIcon.x - 48
 
 
-      # ✏️ TEXTLAYERS
+      #--> TextLayers
       textlayersArr = [
         [@playerTitle, playerInfo.title],
         [@playerChannel, playerInfo.channel],
@@ -358,6 +354,24 @@ class exports.DMnativeIOSplayer extends Layer
       @playerTimeDuration.y = Align.bottom(-20)
 
 
+      # ||-----------|| LAYERS STATES ||-----------||
+
+      #--> Overlay
+      @overlay.states =
+        reveal_light:
+          opacity: 1
+          backgroundColor: black30
+        reveal_dark:
+          opacity: 1
+          backgroundColor: black60
+
+      #--> Controls
+      @controls.states.reveal =
+        opacity: 1
+
+      #--> VODinfo
+      @VODinfo.states.reveal =
+        opacity: 1
 
 
 
@@ -371,13 +385,13 @@ class exports.DMnativeIOSplayer extends Layer
       @TimeUpdate()
 
 
-    # || 🔧 GETTERS AND SETTERS ||
+    # ||-----------|| 🔧 GETTERS AND SETTERS ||-----------||
 
 
 
 
 
-    # || 🔧 SUPPORTING FUNCTIONS ||
+    # ||-----------|| 🔧 SUPPORTING FUNCTIONS ||-----------||
     ConvertIntoSecondsMinutes: (value) =>
 
       # Transforms currentTime into minutes and seconds
@@ -400,7 +414,7 @@ class exports.DMnativeIOSplayer extends Layer
       layer.opacity = 1
 
 
-    # 🔧 DEFINING EVENTS
+    # ||-----------||🔧 DEFINING EVENTS ||-----------||
 
     #--> Reveal overlay
     RevealOverlay: =>
