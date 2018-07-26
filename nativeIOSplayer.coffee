@@ -3,7 +3,7 @@
      || GLOBAL VARIABLES ||
 ==================================================================== ###
 
-
+# Player design specs
 playerDimensions =
   normal:
     width: 375
@@ -11,9 +11,8 @@ playerDimensions =
   minimized:
     height: 106
 
-
+# TextLayers design specs
 playerInfo =
-
   title:
       fontSize: 14
       fontWeight: "500"
@@ -39,12 +38,16 @@ playerInfo =
       color: "white"
 
 # Color palette
+white10 = "rgba(255,255,255,.1)"
 black30 = "rgba(0,0,0,.3)"
 black40 = "rgba(0,0,0,.4)"
 black60 = "rgba(0,0,0,.6)"
 black100 = "rgba(0,0,0,1)"
-
 lightBlue = "#00D2F3"
+
+
+# Other variables
+videoDuration = 0
 
 
 ###  ===================================================================
@@ -243,9 +246,13 @@ class exports.DMnativeIOSplayer extends Layer
       @timeline = new Layer
         name: "timeline"
 
-      @progressBar = new Layer
-        name: "progressBar"
-        backgroundColor: lightBlue
+      @seekbar = new SliderComponent
+        name: "seekbar"
+
+
+      # @progressBar = new Layer
+      #   name: "progressBar"
+      #   backgroundColor: lightBlue
 
       @playerTimeCurrent = new TextLayer
         name: "timeCurrent"
@@ -300,10 +307,34 @@ class exports.DMnativeIOSplayer extends Layer
       @timeline.height = 5
       @timeline.y = Align.bottom
 
+      # NEW NEW NEW NEW ----------------------- ⚠️
+      #--> Seekbar
+      @seekbar.parent = @.controls
+      @seekbar.backgroundColor = white10
+      @seekbar.borderRadius = 0
+      @seekbar.height = 5
+      @seekbar.width = @width
+      @seekbar.y = Align.bottom
+
+      # ↳ Seekbar.fill
+      @seekbar.fill.backgroundColor = lightBlue
+
+      # ↳ Seekbar.knob
+      @seekbar.knob.size = 0
+
+      # ↳ Seekbar.sliderOverlay
+      @seekbar.sliderOverlay.backgroundColor = null
+      @seekbar.sliderOverlay.borderRadius = 0
+      @seekbar.sliderOverlay.height = @height
+      @seekbar.sliderOverlay.y = -@height
+
+
+
+
       #--> Progress Bar
-      @progressBar.parent = @.timeline
-      @progressBar.width = 0
-      @progressBar.height = @.timeline.height
+      # @progressBar.parent = @.timeline
+      # @progressBar.width = 0
+      # @progressBar.height = @.timeline.height
 
       #--> Settings icon
       @settingsIcon.parent = @.controls
@@ -380,7 +411,18 @@ class exports.DMnativeIOSplayer extends Layer
       @.onTap @RevealOverlay
       @.playButton.onTap @TogglePlayPause
 
+
+
+      @.seekbar.onValueChange =>
+
+        # Captures seekbar value - between [0,1]
+        seekbarPos = Utils.round(@.seekbar.value, 2)
+        # print seekbarPos
+
+
+
       # BACKGROUND FUNCTIONS
+      @SeekbarActions()
       @FetchVideoDuration()
       @TimeUpdate()
 
@@ -461,33 +503,57 @@ class exports.DMnativeIOSplayer extends Layer
           @.playButtonIcon.svg = SVG_playButton
 
 
-    #--> Loads progress bar and updates currentTime
-    TimeUpdate: =>
-      Events.wrap(@.video.player).on "timeupdate", =>
-
-        # Stores video current time
-        currrentTime = Math.round(@.video.player.currentTime)
-
-        # Update timeline
-        # ↳ Stores current time of the video divided by the width of timeline
-        newPos = (@.timeline.width / @.video.player.duration) * currrentTime
-
-        # Changes timeline width accordingly
-        @.progressBar.width = newPos
-
-        # Update currentTime
-        @.playerTimeCurrent.text = @ConvertIntoSecondsMinutes(currrentTime)
-
-
     #--> Fetches video's duration
     FetchVideoDuration: =>
       Events.wrap(@.video.player).on "canplay", =>
 
         # Fetches video total duration (in seconds)
-        duration = Math.round(@.video.player.duration)
+        videoDuration = Math.round(@.video.player.duration)
 
         # Updates TextLayer
-        @.playerTimeDuration.text = "/" + "  " + @ConvertIntoSecondsMinutes(duration)
+        @.playerTimeDuration.text = "/" + "  " + @ConvertIntoSecondsMinutes(videoDuration)
+
+
+    #--> Updates progressBar
+    TimeUpdate: =>
+      Events.wrap(@.video.player).on "timeupdate", =>
+
+        # Stores video's current time
+        currrentTime = Math.round(@.video.player.currentTime)
+
+        # Calculates width based on video's current timeo
+        # ↳ Stores current time of the video divided by the width of seekbar
+        newWidth = (@.seekbar.width / @.video.player.duration) * currrentTime
+
+        # Updates seekbar.fill width - progressBar
+        @.seekbar.fill.width = newWidth
+
+        # Update currentTime text
+        @.playerTimeCurrent.text = @ConvertIntoSecondsMinutes(currrentTime)
+
+
+    #--> UNNAMED FUNCTION
+    SeekbarActions: =>
+
+      # ↳ When seekbar dragging starts
+      @.seekbar.knob.on Events.DragStart, =>
+
+        # Pauses video
+        @.video.player.pause()
+
+      # ↳ When seekbar dragging stops
+      @.seekbar.knob.on Events.DragEnd, =>
+
+        seekbarPos = Utils.round(@.seekbar.value, 2)
+
+        # Converts seekbarPos into a value based on the videoDuration in seconds - [0,1] to [0:00, videoDuration]
+        newTime = Utils.modulate(seekbarPos, [0,1],[0,videoDuration])
+
+        # Updates video currentTime unless the values are the same
+        @.video.player.currentTime = newTime unless newTime == Math.round(@.video.player.currentTime)
+
+        # Plays video
+        @.video.player.play()
 
 
     #--> Switches player to a minimized format
