@@ -39,6 +39,7 @@ playerInfo =
 
 # Color palette
 white10 = "rgba(255,255,255,.1)"
+white30 = "rgba(255,255,255,.3)"
 black30 = "rgba(0,0,0,.3)"
 black40 = "rgba(0,0,0,.4)"
 black60 = "rgba(0,0,0,.6)"
@@ -177,7 +178,8 @@ class exports.DMnativeIOSplayer extends Layer
       	b. Overlay
         c. Controls
            - PlayButton
-           - Timeline
+           - Seekbar Overlay
+           - Seekbar
            - SettingsIcon
            - FulllscreenIcon
            - ChromecastIcon
@@ -243,16 +245,12 @@ class exports.DMnativeIOSplayer extends Layer
         name: "playerChannel"
         text: @options.VODchannel || "Channel name"
 
-      @timeline = new Layer
-        name: "timeline"
-
       @seekbar = new SliderComponent
         name: "seekbar"
 
-
-      # @progressBar = new Layer
-      #   name: "progressBar"
-      #   backgroundColor: lightBlue
+      @seekbarOverlay = new Layer
+        name: "seekbarOverlay"
+        backgroundColor: white30
 
       @playerTimeCurrent = new TextLayer
         name: "timeCurrent"
@@ -301,14 +299,7 @@ class exports.DMnativeIOSplayer extends Layer
       @playButtonIcon.fill = "white"
       @playButtonIcon.point = Align.center
 
-      #--> Timeline
-      @timeline.parent = @.controls
-      @timeline.width = 375
-      @timeline.height = 5
-      @timeline.y = Align.bottom
-
-      # NEW NEW NEW NEW ----------------------- ⚠️
-      #--> Seekbar
+      #--> Seekbar: Timeline + Progress Bar
       @seekbar.parent = @.controls
       @seekbar.backgroundColor = white10
       @seekbar.borderRadius = 0
@@ -328,13 +319,11 @@ class exports.DMnativeIOSplayer extends Layer
       @seekbar.sliderOverlay.height = @height
       @seekbar.sliderOverlay.y = -@height
 
+      #--> Seekbar Overlay
+      @seekbarOverlay.parent = @.controls
+      @seekbarOverlay.height = @height
+      @seekbarOverlay.width = 0
 
-
-
-      #--> Progress Bar
-      # @progressBar.parent = @.timeline
-      # @progressBar.width = 0
-      # @progressBar.height = @.timeline.height
 
       #--> Settings icon
       @settingsIcon.parent = @.controls
@@ -356,7 +345,6 @@ class exports.DMnativeIOSplayer extends Layer
       @fulllscreenIcon.x = 340
       @chromecastIcon.x = @fulllscreenIcon.x - 48
       @airplayIcon.x = @chromecastIcon.x - 48
-
 
       #--> TextLayers
       textlayersArr = [
@@ -405,31 +393,18 @@ class exports.DMnativeIOSplayer extends Layer
         opacity: 1
 
 
-
-
-      # EVENTS
+      # ||-----------|| EVENTS ||-----------||
       @.onTap @RevealOverlay
       @.playButton.onTap @TogglePlayPause
 
 
-
-      @.seekbar.onValueChange =>
-
-        # Captures seekbar value - between [0,1]
-        seekbarPos = Utils.round(@.seekbar.value, 2)
-        # print seekbarPos
-
-
-
-      # BACKGROUND FUNCTIONS
+      #||-----------||  BACKGROUND FUNCTIONS ||-----------||
       @SeekbarActions()
       @FetchVideoDuration()
       @TimeUpdate()
 
 
     # ||-----------|| 🔧 GETTERS AND SETTERS ||-----------||
-
-
 
 
 
@@ -532,7 +507,7 @@ class exports.DMnativeIOSplayer extends Layer
         @.playerTimeCurrent.text = @ConvertIntoSecondsMinutes(currrentTime)
 
 
-    #--> UNNAMED FUNCTION
+    #--> Seekbar actions: Update video's time and control seekbarOverlay
     SeekbarActions: =>
 
       # ↳ When seekbar dragging starts
@@ -540,6 +515,14 @@ class exports.DMnativeIOSplayer extends Layer
 
         # Pauses video
         @.video.player.pause()
+
+
+      @.seekbar.onValueChange =>
+
+        # Captures seekbar value - between [0,1]
+        seekbarPos = Utils.round(@.seekbar.value, 2)
+
+        @.seekbarOverlay.width = Utils.modulate(seekbarPos, [0,1], [0, @width])
 
       # ↳ When seekbar dragging stops
       @.seekbar.knob.on Events.DragEnd, =>
