@@ -1,12 +1,11 @@
 
 {
-    "name": "Bidirectional Cycle",
-    "description": "Extension that will make Utils.cycle() iterate in both directions",
-    "author": "Radek Kysely",
+    "name": "Native iOS Dailymotion video-player",
+    "description": "Dailymotion native iOS player with all functional controls recreated in Framer",
+    "author": "Hugo Magalhães",
 
-    "require": "Utilscycle = require 'Utilscycle'",
-    "install": "Utilscycle.coffee",
-    "example": "example.coffee",
+    "require": "DMvideoplayer = require 'nativeIOSplayer'",
+    "install": "nativeIOSplayer.coffee",
 
-    "thumb": "bidirectional-cycle-thumb.mov"
+    "thumb": "thumbnail@2x.png"
 }
