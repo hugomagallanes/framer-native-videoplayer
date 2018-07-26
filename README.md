@@ -2,8 +2,7 @@
 [![license](https://img.shields.io/github/license/bpxl-labs/RemoteLayer.svg)](https://opensource.org/licenses/MIT)
 ![Maintenance](https://img.shields.io/maintenance/yes/2018.svg)
 
-![Video-player](projectCover@2x.png)
-<img src="https://raw.githubusercontent.com/hugomagallanes/nativeIOSDailymotionPlayer/master/projectCover%402x.png" width="300">
+<img src="https://raw.githubusercontent.com/hugomagallanes/nativeIOSDailymotionPlayer/master/projectCover%402x.png" width="375">
 
 Dailymotion native iOS player with all functional controls recreated in Framer.
 
