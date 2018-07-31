@@ -29,7 +29,7 @@ Dailymotion native iOS player with all functional controls recreated in Framer.
 
 | Property     | Type                    | Description                           |
 | -------------|:-----------------------:|---------------------------------------|
-| `VODvideo`   | *External or local URL* | Loads video file
+| `VODvideo`   | *URL*                   | Loads video file
 | `VODheader`  | *String*                | Define video's header
 | `VODchannel` | *String*                | Define video's channel
 
