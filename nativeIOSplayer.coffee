@@ -590,44 +590,45 @@ class exports.DMnativeIOSplayer extends Layer
 
     #--> Switches player to a minimized format
     MinimizePlayer: =>
-
+      # ↳ Player
       @.height = playerDimensions.minimized.height
-
-      @.timeline.height = 3
-      @.timeline.y = 103
-
+      # ↳ Seekbar
+      @.seekbar.height = 3
+      @.seekbar.y = 103
+      # ↳ Play button
       @.playButton.size = 30
       @.playButton.x = 16
       @.playButton.y = 38
-
+      # ↳ Play button icon
       @.playButtonIcon.size = 12
       @.playButtonIcon.x = 9
       @.playButtonIcon.y = 9
-
+      # ↳ Player title
       @.playerTitle.opacity = 0
-
+      # ↳ Player channel
       @.playerChannel.opacity = 0
-
+      # ↳ Settings icons
       @.settingsIcon.opacity = 0
 
     #--> Reverts player back to a regular format
     ExpandPlayer: =>
 
+      # ↳ Player
       @.height = playerDimensions.normal.height
-
-      @.timeline.height = 5
-      @.timeline.y = Align.bottom
-
+      # ↳ Seekbar
+      @.seekbar.height = 5
+      @.seekbar.y = Align.bottom
+      # ↳ Play button
       @.playButton.size = 48
       @.playButton.x = 28
       @.playButton.y = Align.center
-
+      # ↳ Play button icon
       @.playButtonIcon.size = 16
       @.playButtonIcon.x = 16
       @.playButtonIcon.y = 16
-
+      # ↳ Player title
       @.playerTitle.opacity = 1
-
+      # ↳ Player channel
       @.playerChannel.opacity = 1
-
+      # ↳ Setttings icons
       @.settingsIcon.opacity = 1
