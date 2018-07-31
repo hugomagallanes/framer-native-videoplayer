@@ -21,14 +21,28 @@ Dailymotion native iOS player with all functional controls recreated in Framer.
 2. Copy `nativeIOSplayer.coffee` into `modules/` folder inside your Framer project
 3. Import it into your Framer project by adding
 ```coffeescript
-{componentsName} = require 'nativeIOSplayer'
+{nativeIOSplayer} = require 'nativeIOSplayer'
 ```
 
 
 ### Customization
 
-| key          | type                    | description                           |
+| Property     | Type                    | Description                           |
 | -------------|:-----------------------:|---------------------------------------|
 | `VODvideo`   | *External or local URL* | Loads video file
 | `VODheader`  | *String*                | Define video's header
 | `VODchannel` | *String*                | Define video's channel
+
+
+### Functions
+I have included two functions that allow to minimize and expand the player.
+
+*Minimize player*
+```coffeescript
+nativeIOSplayer.MinimizePlayer()
+```
+
+*Expand player - regular size*
+```coffeescript
+nativeIOSplayer.ExpandPlayer()
+```
